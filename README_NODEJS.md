@@ -1,6 +1,6 @@
-# DocuHub - Document Submission & Tracking System (Rails Version)
+# DocuHub - Document Submission & Tracking System
 
-DocuHub is a secure and reliable document submission and tracking system built with Ruby on Rails. It allows users to securely upload documents, receive unique tracking codes, and query processing status. The system simulates how legal or medical professionals exchange important files with transparency and security.
+DocuHub is a secure and reliable document submission and tracking system that allows users to securely upload documents, receive unique tracking codes, and query processing status. The system simulates how legal or medical professionals exchange important files with transparency and security.
 
 ## 🚀 Features
 
@@ -20,20 +20,19 @@ DocuHub is a secure and reliable document submission and tracking system built w
 
 ## 🔧 Technology Stack
 
-- **Backend**: Ruby on Rails 7.1
-- **Database**: PostgreSQL
-- **File Upload**: CarrierWave
-- **Authentication**: JWT + bcrypt
+- **Backend**: Node.js + Express.js
+- **Database**: SQLite3 (lightweight, no additional installation required)
+- **File Upload**: Multer
+- **Security**: Helmet, bcryptjs, JWT
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
 - **UI Framework**: Bootstrap 5 + Font Awesome
-- **Development Tools**: Hot reload with Rails
+- **Development Tools**: Nodemon (hot reload)
 
 ## 📦 Installation and Setup
 
 ### Prerequisites
-- Ruby 3.4.5 or higher
-- PostgreSQL
-- Node.js (for asset compilation)
+- Node.js (version 14 or higher)
+- npm or yarn
 
 ### Installation Steps
 
@@ -45,22 +44,19 @@ DocuHub is a secure and reliable document submission and tracking system built w
 
 2. **Install dependencies**
    ```bash
-   bundle install
+   npm install
    ```
 
-3. **Setup database**
+3. **Start the server**
    ```bash
-   rails db:create
-   rails db:migrate
-   rails db:seed
+   # Production environment
+   npm start
+   
+   # Development environment (hot reload)
+   npm run dev
    ```
 
-4. **Start the server**
-   ```bash
-   rails server
-   ```
-
-5. **Access the application**
+4. **Access the application**
    - Homepage: http://localhost:3000
    - Admin Panel: http://localhost:3000/admin
 
@@ -100,35 +96,17 @@ DocuHub is a secure and reliable document submission and tracking system built w
 
 ```
 DocuHub/
-├── app/
-│   ├── controllers/
-│   │   ├── api/
-│   │   │   ├── documents_controller.rb
-│   │   │   └── admin/
-│   │   │       ├── sessions_controller.rb
-│   │   │       └── documents_controller.rb
-│   │   ├── pages_controller.rb
-│   │   ├── admin_controller.rb
-│   │   └── documents_controller.rb
-│   ├── models/
-│   │   ├── document.rb
-│   │   ├── status_history.rb
-│   │   └── admin.rb
-│   ├── uploaders/
-│   │   └── document_uploader.rb
-│   └── views/
-│       └── pages/
-│           └── home.html.erb
-├── config/
-│   ├── application.rb
-│   ├── routes.rb
-│   ├── database.yml
-│   └── environments/
-├── db/
-│   ├── migrate/
-│   └── seeds.rb
-├── Gemfile
-└── README_RAILS.md
+├── server.js              # Main server file
+├── package.json           # Project configuration
+├── .gitignore            # Git ignore file
+├── README.md             # Project documentation
+├── public/               # Static files
+│   ├── index.html        # Homepage
+│   ├── admin.html        # Admin page
+│   ├── app.js           # Frontend JavaScript
+│   └── admin.js         # Admin JavaScript
+├── uploads/              # Upload file storage (auto-created)
+└── docuhub.db           # SQLite database (auto-created)
 ```
 
 ## 🔒 Security Features
@@ -137,7 +115,7 @@ DocuHub/
 - **File Size Limitation**: Maximum 10MB file size limit
 - **JWT Authentication**: Admin login uses JWT tokens
 - **Password Encryption**: Uses bcrypt to encrypt stored passwords
-- **Security Headers**: Uses Rails security features
+- **Security Headers**: Uses Helmet to set secure HTTP headers
 - **CORS Protection**: Cross-origin request protection
 
 ## 📊 Database Structure
@@ -145,16 +123,16 @@ DocuHub/
 ### documents table
 - `id`: Primary key
 - `tracking_code`: Unique tracking code
-- `original_filename`: Original filename
-- `file`: Uploaded file path
+- `filename`: Server filename
+- `original_name`: Original filename
 - `file_size`: File size
 - `mime_type`: File type
 - `status`: Processing status
-- `notes`: Notes information
-- `created_at`: Creation time
+- `submitted_at`: Submission time
 - `updated_at`: Update time
+- `notes`: Notes information
 
-### status_histories table
+### status_history table
 - `id`: Primary key
 - `document_id`: Document ID (foreign key)
 - `status`: Status
@@ -164,29 +142,27 @@ DocuHub/
 ### admins table
 - `id`: Primary key
 - `username`: Username
-- `email`: Email address
-- `password_digest`: Encrypted password
-- `role`: User role
+- `password_hash`: Encrypted password
 - `created_at`: Creation time
-- `updated_at`: Update time
 
 ## 🚀 Deployment
 
-### Local Development
+### Local Deployment
 ```bash
-rails server
+npm start
 ```
 
-### Production Environment
+### Production Environment Deployment
 1. Set environment variables
    ```bash
-   export RAILS_ENV=production
-   export DATABASE_URL=postgresql://user:password@localhost/docuhub_production
+   export PORT=3000
+   export NODE_ENV=production
    ```
 
-2. Deploy with Capistrano or similar
+2. Deploy with PM2
    ```bash
-   cap production deploy
+   npm install -g pm2
+   pm2 start server.js --name docuhub
    ```
 
 ## 🔧 Configuration Options
@@ -194,14 +170,15 @@ rails server
 ### File Upload Configuration
 - Maximum file size: 10MB
 - Supported file types: PDF, Word, Images, Text files
-- Storage location: `public/uploads/` directory
+- Storage location: `uploads/` directory
 
 ### Database Configuration
-- Database type: PostgreSQL
-- Automatic table structure creation via migrations
+- Database type: SQLite3
+- Database file: `docuhub.db`
+- Automatic table structure creation
 
 ### Security Configuration
-- JWT secret: Uses Rails credentials
+- JWT secret: `your-secret-key` (change for production environment)
 - Default admin account: admin/admin123
 
 ## 🐛 Troubleshooting
@@ -211,7 +188,7 @@ rails server
 1. **Port is occupied**
    ```bash
    # Change port
-   rails server -p 3001
+   PORT=3001 npm start
    ```
 
 2. **File upload failure**
@@ -220,8 +197,8 @@ rails server
    - Check uploads directory permissions
 
 3. **Database error**
-   - Run `rails db:reset` to reset database
-   - Check database connection settings
+   - Delete `docuhub.db` file and restart
+   - Check database file permissions
 
 4. **Admin login failure**
    - Confirm username: `admin`
@@ -238,4 +215,4 @@ MIT License
 
 ## 📞 Support
 
-If you encounter any issues or have suggestions, please create an Issue or contact the development team. 
+If you encounter any issues or have suggestions, please create an Issue or contact the development team.
