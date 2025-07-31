@@ -231,11 +231,3 @@ rails server
 ## 🤝 Contributing
 
 Welcome to submit Issues and Pull Requests to improve this project!
-
-## 📄 License
-
-MIT License
-
-## 📞 Support
-
-If you encounter any issues or have suggestions, please create an Issue or contact the development team. 
