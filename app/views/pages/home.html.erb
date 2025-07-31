@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocuHub - Document Submission & Tracking System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            border-color: #764ba2;
+            background-color: rgba(102, 126, 234, 0.05);
+        }
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background-color: rgba(102, 126, 234, 0.1);
+        }
+        .status-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 15px;
+        }
+        .btn-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            color: white;
+        }
+        .tracking-code {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .history-item {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+        .admin-link {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+        .admin-link:hover {
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="main-container p-5">
+                    <div class="text-center mb-5">
+                        <h1 class="display-4 fw-bold text-primary mb-3">
+                            <i class="fas fa-file-alt me-3"></i>DocuHub
+                        </h1>
+                        <p class="lead text-muted">Secure and reliable document submission and tracking system</p>
+                    </div>
+
+                    <!-- Navigation tabs -->
+                    <ul class="nav nav-tabs mb-4" id="mainTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab">
+                                <i class="fas fa-upload me-2"></i>Submit Document
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="track-tab" data-bs-toggle="tab" data-bs-target="#track" type="button" role="tab">
+                                <i class="fas fa-search me-2"></i>Check Status
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab content -->
+                    <div class="tab-content" id="mainTabsContent">
+                        <!-- Document upload -->
+                        <div class="tab-pane fade show active" id="upload" role="tabpanel">
+                            <form id="uploadForm" enctype="multipart/form-data">
+                                <div class="mb-4">
+                                    <label for="document" class="form-label fw-bold">Select Document</label>
+                                    <div class="upload-area p-5 text-center" id="uploadArea">
+                                        <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                        <h5>Drag and drop files here or click to select</h5>
+                                        <p class="text-muted">Supports PDF, Word, Images, Text files (Max 10MB)</p>
+                                        <input type="file" id="document" name="document[file]" class="d-none" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt">
+                                        <button type="button" class="btn btn-custom" onclick="document.getElementById('document').click()">
+                                            <i class="fas fa-folder-open me-2"></i>Choose File
+                                        </button>
+                                    </div>
+                                    <div id="fileInfo" class="mt-3 d-none">
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-file me-2"></i>
+                                            <span id="fileName"></span>
+                                            <span id="fileSize" class="text-muted ms-2"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="notes" class="form-label fw-bold">Notes</label>
+                                    <textarea class="form-control" id="notes" name="document[notes]" rows="3" placeholder="Enter notes (optional)"></textarea>
+                                </div>
+
+                                <div class="text-center">
+                                    <button type="submit" class="btn btn-custom btn-lg" id="submitBtn">
+                                        <i class="fas fa-paper-plane me-2"></i>Submit Document
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- Submission result -->
+                            <div id="uploadResult" class="mt-4 d-none">
+                                <div class="alert alert-success">
+                                    <h5><i class="fas fa-check-circle me-2"></i>Submission Successful!</h5>
+                                    <p id="resultMessage"></p>
+                                    <div class="tracking-code" id="trackingCode"></div>
+                                    <p class="text-muted small">Please save this tracking code to check document status later.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Status query -->
+                        <div class="tab-pane fade" id="track" role="tabpanel">
+                            <form id="trackForm">
+                                <div class="mb-4">
+                                    <label for="trackingCode" class="form-label fw-bold">Tracking Code</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control form-control-lg" id="trackingCodeInput" placeholder="Enter your tracking code" required>
+                                        <button class="btn btn-custom" type="submit">
+                                            <i class="fas fa-search me-2"></i>Search
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <!-- Query result -->
+                            <div id="trackResult" class="mt-4 d-none">
+                                <div class="status-card p-4 mb-4">
+                                    <h5><i class="fas fa-info-circle me-2"></i>Document Information</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>File Name:</strong><span id="docFileName"></span></p>
+                                            <p><strong>Submitted At:</strong><span id="docSubmittedAt"></span></p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Current Status:</strong><span id="docStatus"></span></p>
+                                            <p><strong>Last Updated:</strong><span id="docUpdatedAt"></span></p>
+                                        </div>
+                                    </div>
+                                    <div id="docNotes" class="mt-3 d-none">
+                                        <p><strong>Notes:</strong><span id="docNotesText"></span></p>
+                                    </div>
+                                </div>
+
+                                <div id="historySection" class="d-none">
+                                    <h5><i class="fas fa-history me-2"></i>Status History</h5>
+                                    <div id="historyList"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin link -->
+    <a href="/admin" class="admin-link">
+        <i class="fas fa-user-shield me-2"></i>Admin
+    </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // File upload related
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('document');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const uploadForm = document.getElementById('uploadForm');
+        const uploadResult = document.getElementById('uploadResult');
+        const resultMessage = document.getElementById('resultMessage');
+        const trackingCode = document.getElementById('trackingCode');
+
+        // Status query related
+        const trackForm = document.getElementById('trackForm');
+        const trackingCodeInput = document.getElementById('trackingCodeInput');
+        const trackResult = document.getElementById('trackResult');
+        const docFileName = document.getElementById('docFileName');
+        const docSubmittedAt = document.getElementById('docSubmittedAt');
+        const docStatus = document.getElementById('docStatus');
+        const docUpdatedAt = document.getElementById('docUpdatedAt');
+        const docNotes = document.getElementById('docNotes');
+        const docNotesText = document.getElementById('docNotesText');
+        const historySection = document.getElementById('historySection');
+        const historyList = document.getElementById('historyList');
+
+        // Drag and drop upload functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect();
+            }
+        });
+
+        // File selection handling
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+            if (file) {
+                fileName.textContent = file.name;
+                fileSize.textContent = `(${formatFileSize(file.size)})`;
+                fileInfo.classList.remove('d-none');
+            } else {
+                fileInfo.classList.add('d-none');
+            }
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Document upload form submission
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(uploadForm);
+            const submitBtn = document.getElementById('submitBtn');
+            
+            // Validate file
+            if (!fileInput.files[0]) {
+                showAlert('Please select a file to upload', 'danger');
+                return;
+            }
+            
+            // Check file size
+            if (fileInput.files[0].size > 10 * 1024 * 1024) {
+                showAlert('File size cannot exceed 10MB', 'danger');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+            
+            try {
+                const response = await fetch('/api/documents', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    resultMessage.textContent = result.message;
+                    trackingCode.textContent = result.tracking_code;
+                    uploadResult.classList.remove('d-none');
+                    uploadForm.reset();
+                    fileInfo.classList.add('d-none');
+                    
+                    // Auto switch to query tab
+                    setTimeout(() => {
+                        document.getElementById('track-tab').click();
+                        trackingCodeInput.value = result.tracking_code;
+                    }, 2000);
+                } else {
+                    showAlert(result.error || 'Upload failed', 'danger');
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                showAlert('Network error, please try again', 'danger');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Submit Document';
+            }
+        });
+
+        // Status query form submission
+        trackForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const code = trackingCodeInput.value.trim();
+            if (!code) {
+                showAlert('Please enter tracking code', 'danger');
+                return;
+            }
+            
+            const submitBtn = trackForm.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Searching...';
+            
+            try {
+                const response = await fetch(`/api/documents/${code}`);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    displayTrackResult(result);
+                } else {
+                    showAlert(result.error || 'Query failed', 'danger');
+                }
+            } catch (error) {
+                console.error('Query error:', error);
+                showAlert('Network error, please try again', 'danger');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-search me-2"></i>Search';
+            }
+        });
+
+        // Display query result
+        function displayTrackResult(data) {
+            const { document, history } = data;
+            
+            // Display document information
+            docFileName.textContent = document.original_filename;
+            docSubmittedAt.textContent = formatDateTime(document.submitted_at);
+            docStatus.textContent = getStatusText(document.status);
+            docUpdatedAt.textContent = formatDateTime(document.updated_at);
+            
+            // Display notes
+            if (document.notes) {
+                docNotesText.textContent = document.notes;
+                docNotes.classList.remove('d-none');
+            } else {
+                docNotes.classList.add('d-none');
+            }
+            
+            // Display status history
+            if (history && history.length > 0) {
+                displayHistory(history);
+                historySection.classList.remove('d-none');
+            } else {
+                historySection.classList.add('d-none');
+            }
+            
+            trackResult.classList.remove('d-none');
+        }
+
+        // Display status history
+        function displayHistory(history) {
+            historyList.innerHTML = '';
+            
+            history.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <strong>${getStatusText(item.status)}</strong>
+                            ${item.notes ? `<p class="mb-1 text-muted">${item.notes}</p>` : ''}
+                        </div>
+                        <small class="text-muted">${formatDateTime(item.updated_at)}</small>
+                    </div>
+                `;
+                historyList.appendChild(historyItem);
+            });
+        }
+
+        // Get status text
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': 'Pending',
+                'processing': 'Processing',
+                'completed': 'Completed',
+                'rejected': 'Rejected',
+                'cancelled': 'Cancelled'
+            };
+            return statusMap[status] || status;
+        }
+
+        // Format date time
+        function formatDateTime(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Show alert message
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            // Insert at top of page
+            const container = document.querySelector('.main-container');
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            // Auto dismiss after 3 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 3000);
+        }
+
+        // Initialize after page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if tracking code exists in URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const trackingCode = urlParams.get('track');
+            if (trackingCode) {
+                document.getElementById('track-tab').click();
+                trackingCodeInput.value = trackingCode;
+            }
+        });
+    </script>
+</body>
+</html> 
